@@ -1,9 +1,50 @@
 <script>
   import { Icon, ConfigProvider } from 'ant-design-vue'
   import zh_CN from 'ant-design-vue/lib/locale-provider/zh_CN';
+  import { mapGetters, mapActions } from 'vuex'
   export default {
     name: 'App',
+    computed: {
+      ...mapGetters({
+        windowTitle: 'getTitle'
+      })
+    },    
+    watch: {
+      '$route'(to) {
+        let obj = {}
+        switch (to.path) {
+          case '/robotsSetting':
+            obj = {
+              width: 800,
+              height: 600
+            }
+          break
+          case '/postTask':
+            obj = {
+              width: 1200,
+              height: 800
+            }
+          break
+          case '/result':
+            obj = {
+              width: 850,
+              height: 600
+            }
+          break
+          default:
+            obj = {
+              width: 650,
+              height: 450
+            }
+          break
+        }
+        this.$ipcRenderer.send('window-resize', obj)
+      }
+    },    
     methods:{
+      ...mapActions({
+        set_title: 'set_title'
+      }),      
       handleWindowClose() {
         if (this.$router.currentRoute.name === 'PostTask') {
           // 整体逻辑为通知订阅组件，如果有未保存的数据提示用户保存

@@ -13,24 +13,42 @@
       '$route'(to) {
         let obj = {}
         switch (to.path) {
-          case '/robotsSetting':
+          case '/register':
             obj = {
-              width: 800,
+              width: 400,
               height: 600
             }
           break
-          case '/postTask':
+          case '/mainview':
             obj = {
-              width: 1200,
-              height: 800
+              width: 1000,
+              height: 650
             }
           break
-          case '/result':
+          case '/selects':
             obj = {
-              width: 850,
-              height: 600
+              width: 1000,
+              height: 650
             }
           break
+          case '/order':
+            obj = {
+              width: 1000,
+              height: 650
+            }
+          break
+          case '/comments':
+            obj = {
+              width: 1000,
+              height: 650
+            }
+          break   
+          case '/backstage':
+            obj = {
+              width: 1000,
+              height: 650
+            }
+          break                           
           default:
             obj = {
               width: 650,
@@ -66,7 +84,7 @@
         <ConfigProvider locale={zh_CN}>
           <div id="app">
             <div class="app_control" style="-webkit-app-region: drag">
-              <div class="app_control_text"><img class='app_control_icon'/>蜜雪冰城模拟器</div>
+              <div class="app_control_text"><img class='app_control_icon' src='logo.ico'/>饮品点餐系统</div>
               <div class="app_control_box" style="-webkit-app-region: no-drag;">
                 <span class="app_control_close" onClick={this.handleWindowClose}><Icon type="close" /></span>
                 <span class="app_control_max" onClick={this.handleWindowMax}><Icon type="switcher" /></span>
@@ -84,6 +102,12 @@
 </script>
 
 <style lang='scss'>
+html{
+    height: 100%;
+}
+body{
+    height:100%;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -91,9 +115,11 @@
   text-align: center;
   color: #2c3e50;
   width: 100%;
+  height: 100%;
 }
 #nav {
   padding-top: 30px;
+  height: 100%;
 }
 .app_control {
   position: fixed;

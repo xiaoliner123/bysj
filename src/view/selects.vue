@@ -1,6 +1,8 @@
 <script>
-    import { List, Avatar,Menu, Button,Badge,Drawer } from 'ant-design-vue'
+    import Vue from 'vue'
+    import { List, Avatar,Menu, Button,Badge,Drawer,Modal,Message,AutoComplete} from 'ant-design-vue'
     import { mapGetters, mapActions } from 'vuex'
+    Vue.use(Modal)
     export default {
         name: 'Selects',
         data() {
@@ -26,9 +28,7 @@
                         price:'￥12'
                     }
                 ],
-                Milk:[
-
-                ],
+                Milk:[],
                 Icecream:[],
                 Cheese:[],
                 Coffee:[],
@@ -77,8 +77,18 @@
                     },                                                                                                                           
                 ],
                 shopping:[],
+                order:{
+                    username:'',
+                    avatar: '',
+                    drinkname:'',
+                    datetime:'',
+                    status:'未出餐',
+                    address:'不需要配送'                   
+                },
+                address:['山西省太原市','重庆市','北京市'],
                 visible:false,
-                totalPrice:0
+                totalPrice:0,
+                showModal:false,
             };
         },
         mounted() {         
@@ -101,7 +111,22 @@
             },
             showDrawer(){
                 this.visible = true
-            }
+            },
+            handleShow(username,avatar,drinkname){
+                this.showModal = true
+            },
+            handleOk(){
+                this.showModal = false
+                this.shopping = []
+                this.totalPrice = 0
+                Message.success('支付成功')
+            },
+            handleCancel(){
+                this.showModal = false
+            },
+            handleChange(value) {
+                console.log(this.order.address);
+            },                        
         },
         render() {
             return (
@@ -156,10 +181,20 @@
                             </div>
                             <div style={{paddingTop:'20px'}}>
                                 <div style={{float:'left'}}><span style={{display:'inline-block',paddingTop:'14px',fontSize:'20px',color:'#f40'}}>总价&nbsp;&nbsp;{this.totalPrice}</span></div>
-                                <div style={{float:'right'}}><Button size='large' type='primary'>结算</Button></div>
+                                <div style={{float:'right'}}><Button size='large' type='primary' onClick={this.handleShow}>结算</Button></div>
                             </div>
                         </Drawer>                  
                     </div>
+                    <Modal visible={this.showModal} onCancel={this.handleCancel} footer={null}>
+                        <span>请输入配送地址：</span>
+                        <AutoComplete
+                            dataSource={this.address}
+                            style={{width:'100%'}}
+                            onChange={this.handleChange}
+                            v-model={this.order.address}
+                        />
+                        <div style={{width:'100%',height:'40px'}}><div style={{float:'right'}}><Button onClick={this.handleOk}>确认支付</Button></div></div>
+                    </Modal>
                 </div>
             )
         }

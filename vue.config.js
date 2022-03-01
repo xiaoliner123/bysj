@@ -4,7 +4,7 @@ module.exports = {
   pluginOptions: {
     electronBuilder: {
       builderOptions: {
-        "productName":"Audit-rpa",//项目名，也是生成的安装文件名，即aDemo.exe
+        "productName":"饮品点餐系统",//项目名，也是生成的安装文件名，即aDemo.exe
         "directories":{
           "output":"./dist"//输出文件路径
         },
@@ -19,7 +19,7 @@ module.exports = {
               ]
             }
           ],
-          "icon": "./public/icon.ico"
+          "icon": "./public/logo.ico"
         }
       }
     }

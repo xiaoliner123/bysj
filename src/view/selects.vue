@@ -2,82 +2,29 @@
     import Vue from 'vue'
     import { List, Avatar,Menu, Button,Badge,Drawer,Modal,Message,AutoComplete} from 'ant-design-vue'
     import { mapGetters, mapActions } from 'vuex'
+    import addOrderSocket from '../api/addOrder'
+    import getDrinkSocket from '../api/getdrink'
+    import getAddressSocket from '../api/getAddress'
+    import addAddressSocket from '../api/addAddress'
     Vue.use(Modal)
     export default {
         name: 'Selects',
         data() {
             return {
-                New:[
-                    {
-                        name:'珍珠奶茶',
-                        pictureUrl:'黑糖.jpeg',
-                        price:'￥12'
-                    }
-                ],
-                Fruit:[
-                    {
-                        name:'三拼霸霸奶茶',
-                        pictureUrl:'椰果.jpeg',
-                        price:'￥12'
-                    }                    
-                ],
-                Snacks:[
-                    {
-                        name:'霸霸椰果奶茶',
-                        pictureUrl:'椰果.jpeg',
-                        price:'￥12'
-                    }
-                ],
+                user:{},
+                New:[],
+                Fruit:[],          
+                Snacks:[],
                 Milk:[],
                 Icecream:[],
                 Cheese:[],
                 Coffee:[],
                 Tea:[],
                 Ice:[],
-                menuList: [
-                    {
-                        name:'珍珠奶茶',
-                        pictureUrl:'黑糖.jpeg',
-                        price:'￥12'
-                    }, 
-                    {
-                        name:'三拼霸霸奶茶',
-                        pictureUrl:'椰果.jpeg',
-                        price:'￥12'
-                    },  
-                    {
-                        name:'黑糖珍珠奶茶',
-                        pictureUrl:'黑糖.jpeg',
-                        price:'￥12'
-                    },  
-                    {
-                        name:'霸霸椰果奶茶',
-                        pictureUrl:'椰果.jpeg',
-                        price:'￥12'
-                    },  
-                    {
-                        name:'双拼奶茶',
-                        pictureUrl:'双拼.jpeg',
-                        price:'￥12'
-                    },
-                    {
-                        name:'黑糖珍珠奶茶',
-                        pictureUrl:'黑糖.jpeg',
-                        price:'￥12'
-                    },  
-                    {
-                        name:'霸霸椰果奶茶',
-                        pictureUrl:'椰果.jpeg',
-                        price:'￥12'
-                    },  
-                    {
-                        name:'双拼奶茶',
-                        pictureUrl:'双拼.jpeg',
-                        price:'￥12'
-                    },                                                                                                                           
-                ],
+                menuList: [],
                 shopping:[],
                 order:{
+                    id:'',
                     username:'',
                     avatar: '',
                     drinkname:'',
@@ -85,13 +32,20 @@
                     status:'未出餐',
                     address:'不需要配送'                   
                 },
-                address:['山西省太原市','重庆市','北京市'],
+                address:[],
                 visible:false,
                 totalPrice:0,
                 showModal:false,
+                dat: new Date()
             };
         },
-        mounted() {         
+        mounted() {
+            this.user = this.getUserinfo
+            getDrinkSocket.webSocketSend()
+            getDrinkSocket.webSocketOnMessage(this.getDrink)
+            getAddressSocket.webSocketSend(this.user.username)
+            getAddressSocket.webSocketOnMessage(this.getAddress)
+            console.log(this.user)         
         },
         computed: {
             ...mapGetters({
@@ -102,9 +56,56 @@
             ...mapActions({
                 set_userinfo: 'set_userinfo'
             }),
+            getDrink(msg){
+                let data = JSON.parse(msg.data)
+                console.log('获取到')
+                console.log(data)
+                for(var i=0;i<data.length;i++){
+                    switch (data[i].drinkkind){
+                        case '当季新品':
+                            this.New.push(data[i])
+                            this.menuList.push(data[i])
+                            break
+                        case '清爽果茶':
+                            this.Fruit.push(data[i])
+                            break
+                        case '小零食':
+                            this.Snacks.push(data[i])
+                            break 
+                        case '现煮奶茶':
+                            this.Milk.push(data[i])
+                            console.log(this.Milk)
+                            break 
+                        case '鲜冰激凌':
+                            this.Icecream.push(data[i])
+                            break 
+                        case '芝士奶盖':
+                            this.Cheese.push(data[i])
+                            break 
+                        case '新品咖啡':
+                            this.Coffee.push(data[i])
+                            break 
+                        case '原叶纯茶':
+                            this.Tea.push(data[i])
+                            break 
+                        case '冰沙系列':
+                            this.Ice.push(data[i])
+                            break                             
+                        
+                    }
+                }
+            },
+            getAddress(msg){
+                let ads = JSON.parse(msg.data)
+                console.log(ads)
+                for(var i=0;i<ads.length;i++){
+                    this.address.push(ads[i].address)
+                }
+            },
             handleadd(itemName,itemPrice,itemAvater){
-                this.shopping.push({name:itemName,price:itemPrice,pictureUrl:itemAvater})
-                this.totalPrice = this.totalPrice + parseInt(itemPrice.replace('￥','')) 
+                this.shopping.push({name:itemName,price:'￥'+itemPrice,pictureUrl:itemAvater})
+                console.log(itemPrice)
+                this.totalPrice = this.totalPrice + itemPrice
             },
             onClose(){
                 this.visible = false
@@ -114,13 +115,31 @@
             },
             handleShow(username,avatar,drinkname){
                 this.showModal = true
+                this.order.datetime = this.dat.toLocaleDateString()
+                this.order.avatar = this.shopping[0].pictureUrl
+                this.order.username = this.user.username
+                for(var i in this.shopping){
+                    this.order.drinkname = this.order.drinkname + ' ' +this.shopping[i].name 
+                    console.log(this.order.drinkname)
+                }
             },
             handleOk(){
                 this.showModal = false
                 this.shopping = []
                 this.totalPrice = 0
-                Message.success('支付成功')
+                addOrderSocket.webSocketSend(this.order)
+                addOrderSocket.webSocketOnMessage(this.callback)
+                addAddressSocket.webSocketSend({username:this.user.username,address:this.order.address})
+                console.log(this.order)
             },
+            callback(msg){
+                let message = msg.data
+                if(!JSON.parse(message).code){
+                    Message.success(JSON.parse(message).msg)
+                }else{
+                    Message.error(JSON.parse(message).msg)
+                } 
+            },            
             handleCancel(){
                 this.showModal = false
             },
@@ -150,11 +169,11 @@
                             size='large'
                             renderItem={item =>(
                                 <div onClick={()=>{console.log('ok')}} style={{paddingLeft:'10px'}}>
-                                    <List.Item actions={[<Button size='small' type='primary' onClick={this.handleadd.bind(this,item.name,item.price,item.pictureUrl)}>添加</Button>]}>
+                                    <List.Item actions={[<Button size='small' type='primary' onClick={this.handleadd.bind(this,item.drinkname,item.drinkprice,item.drinkurl)}>添加</Button>]}>
                                         <List.Item.Meta
-                                            avatar={<Avatar src={item.pictureUrl}/>}
-                                            title={item.name}
-                                            description={item.price}
+                                            avatar={<Avatar src={item.drinkurl}/>}
+                                            title={item.drinkname}
+                                            description={'￥'+item.drinkprice}
                                         />
                                     </List.Item>
                                 </div>
@@ -167,7 +186,7 @@
                                     dataSource={this.shopping}
                                     renderItem={(item,index) =>(
                                         <div style={{paddingLeft:'10px'}}>
-                                            <List.Item actions={[<Button size='small' type='primary' onClick={()=>{this.shopping.splice(index,1),this.totalPrice = this.totalPrice - parseInt(item.price.replace('￥',''))}}>删除</Button>]}>
+                                            <List.Item actions={[<Button size='small' type='primary' onClick={()=>{this.shopping.splice(index,1),this.totalPrice = this.totalPrice - item.price}}>删除</Button>]}>
                                                 <List.Item.Meta
                                                     avatar={<Avatar src={item.pictureUrl}/>}
                                                     title={item.name}
@@ -219,6 +238,7 @@
             position: fixed;
             bottom:10px;
             right:50px;
+            cursor:pointer;
         }
     }
     .ant-drawer-body{

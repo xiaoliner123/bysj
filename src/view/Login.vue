@@ -1,6 +1,7 @@
 <script>
-    import { Form,FormModel, ConfigProvider,Input,Button } from 'ant-design-vue'
+    import { Form,FormModel, ConfigProvider,Input,Button,Message} from 'ant-design-vue'
     import { mapGetters, mapActions } from 'vuex'
+    import LoginSocket from '../api/login'
     export default {
         name: 'Login',
         data() {
@@ -35,7 +36,17 @@
                 this.set_userinfo(this.userinfo)
                 //console.log(this.userinfo)
                 this.$ipcRenderer.send('eStore-set','userinfo',this.userinfo) 
-                this.$router.replace('/mainview')
+                LoginSocket.webSocketSend(this.userinfo)
+                LoginSocket.webSocketOnMessage(this.callback)
+            },
+            callback(msg){
+                let message = msg.data
+                if(!JSON.parse(message).code){
+                    Message.success(JSON.parse(message).msg)
+                    this.$router.replace('/mainview')
+                }else{
+                    Message.error(JSON.parse(message).msg)
+                }               
             },
             toRegister(){   
                 this.$router.replace('/register')
@@ -97,5 +108,8 @@
         color: black;
         font-weight: bold;
         font-size: 24px;
+    }
+    .ant-input-affix-wrapper .ant-input-prefix, .ant-input-affix-wrapper .ant-input-suffix{
+        transform: none;
     }
 </style>

@@ -1,7 +1,8 @@
 <script>
-    import { Form,FormModel, ConfigProvider,Input,Button } from 'ant-design-vue'
+    import { Form,FormModel, ConfigProvider,Input,Button,Message } from 'ant-design-vue'
     import zh_CN from 'ant-design-vue/lib/locale-provider/zh_CN';
     import { mapGetters, mapActions } from 'vuex'
+    import RegisterSocket from '../api/register'
     export default {
         name: 'Register',
         data() {
@@ -9,10 +10,10 @@
                 registerinfo: {
                     username:'',
                     password:'',
-                    password2:'',
                     tel:'',
                     idcord:''
                 },
+                password2:''
             };
         },
         mounted() {           
@@ -21,12 +22,26 @@
         },   
         methods:{
             handleRegister(){
-                console.log("注册成功")
-                this.$router.replace('/')
+                if(this.registerinfo.password !==this.password2){
+                    Message.error('两次输入密码不一致')
+                }else{
+                    console.log('???')
+                    RegisterSocket.webSocketSend(this.registerinfo)
+                    RegisterSocket.webSocketOnMessage(this.callback)
+                }
             },
             toLogin(){
                 this.$router.replace('/')
-            }
+            },
+            callback(msg){
+                let message = msg.data
+                if(!JSON.parse(message).code){
+                    Message.success(JSON.parse(message).msg)
+                    this.$router.replace('/')
+                }else{
+                    Message.error(JSON.parse(message).msg)
+                } 
+            },
         },
         render() {
             return (
@@ -41,7 +56,7 @@
                                 <Input.Password v-model={this.registerinfo.password}/>
                             </Form.Item>
                             <Form.Item label='确认密码'>
-                                <Input.Password v-model={this.registerinfo.password2}/>
+                                <Input.Password v-model={this.password2}/>
                             </Form.Item>
                             <Form.Item label='手机号'>
                                 <Input v-model={this.registerinfo.tel}/>

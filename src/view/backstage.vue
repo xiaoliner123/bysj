@@ -1,91 +1,43 @@
 <script>
-    import { Menu,List,Comment,Button,Select,Avatar} from 'ant-design-vue'
+    import { Menu,List,Comment,Button,Select,Avatar,Drawer,Form,Input,AutoComplete,Message} from 'ant-design-vue'
     import { mapGetters, mapActions } from 'vuex'
+    import addDrinkSocket from '../api/addDrink' 
+    import getCommentSocket from '../api/getComment'
+    import delCommentSocket from '../api/delComment'
+    import getOrderSocket from '../api/getOrder'
+    import revStatusSocket from '../api/revStatus'
+    import getDrinkSocket from '../api/getdrink'
+    import delDrinkSocket from '../api/delDrink'
     const { Option } = Select
     export default {
         name: 'Backstage',
         data() {
             return {
                 contentObj:{},
-                comments:[
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若阿萨德哈军所多哈军卡奥所大所大大大所大多撒大所大所大所大所大所大所多撒多所大所大所大大师大师大师大师的华为客户要求武汉市打卡机的哈扩大产能，奥马哈科技的哈空间的哈市科技的哈师大',
-                        datetime:'2022-12-12',
-                        ordername:'鲜榨橙汁'
-                    },
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若',
-                        datetime:'2022-2-15',
-                        ordername:'草莓圣代'
-                    },
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若阿萨德哈军所多哈军卡奥所大所大大大所大多撒大所大所大所大所大所大所多撒多所大所大所大大师大师大师大师的华为客户要求武汉市打卡机的哈扩大产能，奥马哈科技的哈空间的哈市科技的哈师大',
-                        datetime:'2022-12-12',
-                        ordername:'鲜榨橙汁'
-                    },
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若',
-                        datetime:'2022-2-15',
-                        ordername:'草莓圣代'
-                    },                    
-                ],
-                orders:[
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/jess',
-                        drinkname:'鲜榨橙汁',
-                        datetime:'2022-12-12',
-                        status:'正在配送',
-                        address:'山西省'
-                    },
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        drinkname:'鲜榨橙汁',
-                        datetime:'2022-12-12',
-                        status:'订单完成',
-                        address:'北京市'
-                    },                   
-                ],
-                drinks:[
-                    {
-                        name:'珍珠奶茶',
-                        pictureUrl:'黑糖.jpeg',
-                        price:'￥12'
-                    }, 
-                    {
-                        name:'三拼霸霸奶茶',
-                        pictureUrl:'椰果.jpeg',
-                        price:'￥12'
-                    },  
-                    {
-                        name:'黑糖珍珠奶茶',
-                        pictureUrl:'黑糖.jpeg',
-                        price:'￥12'
-                    },  
-                    {
-                        name:'霸霸椰果奶茶',
-                        pictureUrl:'椰果.jpeg',
-                        price:'￥12'
-                    },  
-                    {
-                        name:'双拼奶茶',
-                        pictureUrl:'双拼.jpeg',
-                        price:'￥12'
-                    },                    
-                ]
+                comments:[],
+                orders:[],
+                drinks:[],
+                addDrink:{
+                    drinkname:'',
+                    drinkkind:'',
+                    drinkprice:'',
+                    drinkurl:''
+                },
+                drinkkind:['当季新品','清爽果茶','小零食','现煮奶茶','鲜冰激凌','芝士奶盖','新品咖啡','原叶纯茶','冰沙系列'],
+                avatarlist:['jazebelle','julie','jake','jabala','jerry','jude','jacques','jordan','josh','jenni'],
+                visible:false,
             };
         },
         mounted() {  
-            this.contentObj = this.drinkManage()       
+            getDrinkSocket.webSocketSend()
+            getDrinkSocket.webSocketOnMessage((msg)=>{console.log(JSON.parse(msg.data)),this.drinks = JSON.parse(msg.data)})
+            setTimeout(()=>{
+                this.contentObj = this.drinkManage()
+            },100)
+            getCommentSocket.webSocketSend()
+            getCommentSocket.webSocketOnMessage((msg)=>{console.log(JSON.parse(msg.data)),this.comments = JSON.parse(msg.data)})
+            getOrderSocket.webSocketSend()
+            getOrderSocket.webSocketOnMessage((msg)=>{console.log(JSON.parse(msg.data)),this.orders = JSON.parse(msg.data)})
         },
         computed: {
             ...mapGetters({
@@ -104,6 +56,27 @@
                         </span>,                                       
                     ]                    
                 )
+            },
+            handleAddDrink(){
+                console.log('ok')
+                setTimeout(()=>{
+                    addDrinkSocket.webSocketSend(this.addDrink)
+                    addDrinkSocket.webSocketOnMessage(this.callback)
+                },3000)
+            },
+            callback(msg){
+                let message = msg.data
+                if(!JSON.parse(message).code){
+                    Message.success(JSON.parse(message).msg)
+                }else{
+                    Message.error(JSON.parse(message).msg)
+                }               
+            },
+            onClose(){
+                this.visible = false
+            },
+            showDrawer(){
+                this.visible = true
             },            
             drinkManage(){
                 return (
@@ -113,16 +86,17 @@
                             size='large'
                             renderItem={(item,index) =>(
                                 <div onClick={()=>{console.log('ok')}} style={{paddingLeft:'10px'}}>
-                                    <List.Item actions={[<Button size='small' type='primary' onClick={()=>{this.drinks.splice(index,1)}}>删除</Button>]}>
+                                    <List.Item actions={[<Button size='small' type='primary' onClick={()=>{delDrinkSocket.webSocketSend(item.drinkid),delDrinkSocket.webSocketOnMessage(this.callback),this.drinks.splice(index,1)}}>删除</Button>]}>
                                         <List.Item.Meta
-                                            avatar={<Avatar src={item.pictureUrl}/>}
-                                            title={item.name}
-                                            description={item.price}
+                                            avatar={<Avatar src={item.drinkurl}/>}
+                                            title={item.drinkname}
+                                            description={'￥'+item.drinkprice}
                                         />
                                     </List.Item>
                                 </div>
                             )}
-                        ></List>                    
+                        ></List> 
+                        <div class='add-drink' onClick={()=>{this.visible = true}}><Avatar size='large' src='添加.jpg'/></div>                     
                     </div>
                 )
             },
@@ -133,7 +107,7 @@
                             split={false}
                             dataSource={this.orders}
                             renderItem={(item,index) =>(
-                                <List.Item actions={[<Select style={{width:'120px'}} v-model={this.orders[index].status}><Option value='未出餐'>未出餐</Option><Option value='正在配送'>正在配送</Option><Option value='订单完成'>订单完成</Option></Select>]}>
+                                <List.Item actions={[<Select style={{width:'120px'}} v-model={this.orders[index].status} onChange={()=>{console.log('修改状态'),revStatusSocket.webSocketSend({id:item.id,status:this.orders[index].status})}}><Option value='未出餐'>未出餐</Option><Option value='正在配送'>正在配送</Option><Option value='订单完成'>订单完成</Option></Select>]}>
                                     <Comment
                                         actions={this.handleModel(item.address)}
                                         author={item.username}
@@ -155,11 +129,11 @@
                             split={false}
                             dataSource={this.comments}
                             renderItem={(item,index) =>(
-                                <List.Item actions={[<Button size='small' type='primary' onClick={()=>{this.comments.splice(index,1)}}>删除</Button>]}>
+                                <List.Item actions={[<Button size='small' type='primary' onClick={()=>{delCommentSocket.webSocketSend(item.id),delCommentSocket.webSocketOnMessage(this.callback),this.comments.splice(index,1)}}>删除</Button>]}>
                                     <Comment
                                         actions={this.handleModel(item.ordername)}
                                         author={item.username}
-                                        avatar={item.avatar}
+                                        avatar={'https://joeschmoe.io/api/v1/' + this.avatarlist[Math.floor(Math.random()*this.avatarlist.length)]}
                                         content={item.comm}
                                         datetime={item.datetime}
                                     />
@@ -180,10 +154,33 @@
                             <Menu.Item key='2' onClick={()=>{this.contentObj = this.orderManage()}}>&nbsp;订单管理</Menu.Item>
                             <Menu.Item key='3' onClick={()=>{this.contentObj = this.commentManage()}}>&nbsp;评论管理</Menu.Item>
                         </Menu>
-                    </div>
+                    </div> 
                     <div class='drinklist'>  
                         {this.contentObj}              
                     </div>
+                    <Drawer visible={this.visible} onClose={this.onClose} width='400' closable={false}>
+                        <form action='http://localhost:3000/img_upload' method='post' enctype='multipart/form-data'>
+                            <Form.Item label='饮品名称:'>
+                                <Input v-model={this.addDrink.drinkname}/>
+                            </Form.Item>
+                            <Form.Item label='饮品分类:'>
+                                <AutoComplete
+                                    dataSource={this.drinkkind}
+                                    v-model={this.addDrink.drinkkind}
+                                    style={{width:'100%'}}
+                                />
+                            </Form.Item>
+                            <Form.Item label='饮品价格:'>
+                                <Input v-model={this.addDrink.drinkprice}/>
+                            </Form.Item>
+                            <Form.Item label='饮品配图:'>
+                                <input type='file' name='image' size='50'/>
+                            </Form.Item>
+                            <div style={{paddingTop:'20px',marginTop:'100px'}}>
+                                <div style={{float:'right'}}><Button size='large' type='primary' htmlType='submit' onClick={this.handleAddDrink}>确定</Button></div>
+                            </div> 
+                        </form>                       
+                    </Drawer> 
                 </div>
             )
         }
@@ -197,5 +194,11 @@
         float: left;
         width: 15%;
         height: 100%;
+    }
+    .add-drink{
+        position: fixed;
+        bottom:10px;
+        right:30px;
+        cursor:pointer;
     }
 </style>

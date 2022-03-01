@@ -1,7 +1,9 @@
 <script>
     import Vue from 'vue'
-    import {List,Comment,Tooltip,Icon, Button,Modal,Input} from 'ant-design-vue'
+    import {List,Comment,Tooltip,Icon, Button,Modal,Input,Message} from 'ant-design-vue'
     import { mapGetters, mapActions } from 'vuex'
+    import getOrderSocket from '../api/getOrder'
+    import addCommentSocket from '../api/addComment'
     Vue.use(Modal)
     export default {
         name: 'Order',
@@ -38,8 +40,8 @@
                     },                                                                              
                 ],
                 comments:{
+                    id:'',
                     username:'',
-                    avatar: '',
                     comm:'请输入评论',
                     datetime:'',
                     ordername:''     
@@ -48,7 +50,9 @@
                 dat: new Date()
             };
         },
-        mounted() {         
+        mounted() {  
+            getOrderSocket.webSocketSend()
+            getOrderSocket.webSocketOnMessage((msg)=>{console.log(JSON.parse(msg.data)),this.orders = JSON.parse(msg.data)})       
         },
         computed: {
             ...mapGetters({
@@ -69,15 +73,24 @@
                     ]                    
                 )
             },
+            callback(msg){
+                let message = msg.data
+                if(!JSON.parse(message).code){
+                    Message.success(JSON.parse(message).msg)
+                }else{
+                    Message.error(JSON.parse(message).msg)
+                } 
+            },
             handleShow(username,avatar,drinkname){
                 this.showModal = true
                 this.comments.username = username
-                this.comments.avatar = avatar
                 this.comments.ordername = drinkname
+                this.comments.datetime = this.dat.toLocaleDateString()
             },
             handleOk(){
                 this.showModal = false
-                this.comments.datetime = this.dat.toLocaleDateString()
+                addCommentSocket.webSocketSend(this.comments)
+                addCommentSocket.webSocketOnMessage(this.callback)
                 console.log(this.comments)
             },
             handleCancel(){

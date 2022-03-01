@@ -2,71 +2,18 @@
     import Vue from 'vue'
     import {List,Comment,Tooltip,Icon} from 'ant-design-vue'
     import { mapGetters, mapActions } from 'vuex'
+    import getCommentSocket from '../api/getComment'
     export default {
         name: 'Comments',
         data() {
             return {
-                comments:[ 
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若阿萨德哈军所多哈军卡奥所大所大大大所大多撒大所大所大所大所大所大所多撒多所大所大所大大师大师大师大师的华为客户要求武汉市打卡机的哈扩大产能，奥马哈科技的哈空间的哈市科技的哈师大',
-                        datetime:'2022-12-12',
-                        ordername:'鲜榨橙汁'
-                    },
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若',
-                        datetime:'2022-2-15',
-                        ordername:'草莓圣代'
-                    },
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若阿萨德哈军所多哈军卡奥所大所大大大所大多撒大所大所大所大所大所大所多撒多所大所大所大大师大师大师大师的华为客户要求武汉市打卡机的哈扩大产能，奥马哈科技的哈空间的哈市科技的哈师大',
-                        datetime:'2022-12-12',
-                        ordername:'鲜榨橙汁'
-                    },
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若',
-                        datetime:'2022-2-15',
-                        ordername:'草莓圣代'
-                    },
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若阿萨德哈军所多哈军卡奥所大所大大大所大多撒大所大所大所大所大所大所多撒多所大所大所大大师大师大师大师的华为客户要求武汉市打卡机的哈扩大产能，奥马哈科技的哈空间的哈市科技的哈师大',
-                        datetime:'2022-12-12',
-                        ordername:'鲜榨橙汁'
-                    },
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若',
-                        datetime:'2022-2-15',
-                        ordername:'草莓圣代'
-                    },
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若阿萨德哈军所多哈军卡奥所大所大大大所大多撒大所大所大所大所大所大所多撒多所大所大所大大师大师大师大师的华为客户要求武汉市打卡机的哈扩大产能，奥马哈科技的哈空间的哈市科技的哈师大',
-                        datetime:'2022-12-12',
-                        ordername:'鲜榨橙汁'
-                    },
-                    {
-                        username:'13121321',
-                        avatar: 'https://joeschmoe.io/api/v1/random',
-                        comm:'翁斐然翁绕弯儿翁认为我若',
-                        datetime:'2022-2-15',
-                        ordername:'草莓圣代'
-                    },                                                            
-                ],
+                comments:[],
+                avatarlist:['jazebelle','julie','jake','jabala','jerry','jude','jacques','jordan','josh','jenni']
             };
         },
-        mounted() {         
+        mounted() { 
+            getCommentSocket.webSocketSend()
+            getCommentSocket.webSocketOnMessage((msg)=>{console.log(JSON.parse(msg.data)),this.comments = JSON.parse(msg.data)})        
         },
         computed: {
             ...mapGetters({
@@ -100,7 +47,7 @@
                                 <Comment
                                     actions={this.handleModel(item.ordername)}
                                     author={item.username}
-                                    avatar={item.avatar}
+                                    avatar={'https://joeschmoe.io/api/v1/' + this.avatarlist[Math.floor(Math.random()*this.avatarlist.length)]}
                                     content={item.comm}
                                     datetime={item.datetime}
                                 />

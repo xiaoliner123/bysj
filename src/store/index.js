@@ -18,7 +18,7 @@ export default new Vuex.Store({
             state.title = data
         },
         SET_USERINFO(state,data){
-            state.userinfo = data
+            state.data.userinfo = data
         }
     },
     actions:{

@@ -40,7 +40,6 @@
                     },                                                                              
                 ],
                 comments:{
-                    id:'',
                     username:'',
                     comm:'请输入评论',
                     datetime:'',
